@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET
 const {OAuth2Client} = require('google-auth-library');
 const client = new OAuth2Client(CLIENT_ID);
 
-const validationResult = require('express-validator')
+const {body, validationResult} = require('express-validator')
 
 exports.getLogIn = (req, res) => {
     res.render('login', {
@@ -24,15 +24,19 @@ exports.getSignUp = (req, res) => {
 }
 
 exports.postLogIn = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+       return res.status(400).json({errors, success: false})
+    }
     try {
         const {email, password} = req.body;
         let user = await User.findOne({email});
         if (!user) {
-            return res.status(400).json({error: "Sorry a user with this email does not exist"})
+            return res.status(400).json({error: "Sorry a user with this email does not exist", success: false})
         }
         const passwordCompare = await bcrypt.compare(password, user.password)
         if (!passwordCompare) {
-            return res.status(400).json({error: "Please try to login with correct credentials"})
+            return res.status(400).json({error: "Please try to login with correct credentials", success: false})
         }
         const data = {
             user: {
@@ -41,14 +45,17 @@ exports.postLogIn = async (req, res) => {
         }
         const authToken = jwt.sign(data, JWT_SECRET);
         res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
-        res.json({authToken: authToken, success: true})
+        res.json({success: true})
     } catch(error) {
-        console.log(error.message)
-        res.status(500).send("Internal Server Error")
+        res.status(500).send({error: error, success: false})
     }
 }
 
 exports.postSignUp = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({errors, success: false})
+    }
     const {username, email, password} = req.body
     
     try {
@@ -73,8 +80,8 @@ exports.postSignUp = async (req, res) => {
         const authToken = jwt.sign(data, JWT_SECRET)
         res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
         res.status(200).json({success: true})
-    } catch (err) {
-        return res.status(400).json({messg: err, success: false})
+    } catch (error) {
+        return res.status(500).json({messg: error, success: false})
     }
 }
 
@@ -95,12 +102,12 @@ exports.googleLogIn = async (req, res) => {
         const userName = payload['name']
 
         let user = await User.findOne({email: userEmail})
+        console.log(user)
         if (!user) {
             user = await User.create({
                 name: userName,
                 email: userEmail,
                 provider: ['Google'],
-                password: "what"
             })
         }
 

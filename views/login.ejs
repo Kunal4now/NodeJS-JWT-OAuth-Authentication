@@ -56,7 +56,6 @@
                 body: JSON.stringify({email, password})
             })
             const json = await response.json()
-            console.log(json)
             if (json.success) {
                 location.assign('/dashboard')
             } else {
