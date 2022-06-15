@@ -16,12 +16,11 @@ exports.getLogIn = (req, res) => {
         GOOGLE_LOGIN_URI: process.env.GOOGLE_LOGIN_URI,
         GOOGLE_LOGIN_URL: process.env.GOOGLE_LOGIN_URL,
         LOGIN_URL: process.env.LOGIN_URL,
-        SIGNUP_URL: process.env.SIGNUP_URL
     })
 }
 
 exports.getSignUp = (req, res) => {
-    res.render('signup')
+    res.render('signup', {SIGNUP_URL: process.env.SIGNUP_URL})
 }
 
 exports.postLogIn = async (req, res) => {
