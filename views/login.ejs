@@ -6,6 +6,7 @@
     <title>Log In</title>
 </head>
 <body>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <h1>Login</h1>
     <form action="/dashboard" method="POST">
         <label for="email">Email</label>
@@ -16,6 +17,22 @@
 
         <button type="submit">Submit</button>
     </form>
+    <div class="button">
+        <div id="g_id_onload"
+         data-client_id=<%= GOOGLE_CLIENT_ID %> 
+         data-login_uri=<%= GOOGLE_LOGIN_URI %> 
+         data-callback="handleCredentialResponse"
+         >
+      </div>
+      <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+      </div>
+    </div>
     <a href="/auth/signup">Don't have an account?</a>
 </body>
 <script>
@@ -49,5 +66,23 @@
             console.log(err)
         }
     })
+    async function handleCredentialResponse(response) {
+        let responsePayload = response.credential;
+        const data = await fetch('http://localhost:3000/auth/google/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                data: responsePayload
+            })
+        })
+        const json = await data.json()
+        if (json.success) {
+            location.assign('/dashboard')
+        } else {
+            location.assign('/auth/login')
+        }
+    }
 </script>
 </html>

@@ -1,22 +1,30 @@
 const jwt = require('jsonwebtoken')
+const User = require('../models/User')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
 const fetchuser = async (req, res, next) => {
     const token = req.cookies.token
-      if (!token) {
-        res.render('index')
-        //   res.redirect('/')
-        // return res.status(401).send({error: "Please authenticate using a valid token"})
-    }
-    try {
-        const data = jwt.verify(token, JWT_SECRET)
-        req.user = data.user
-        next()
-    } catch (err) {
-        res.render('index')
-        // res.redirect('/', {error: err})
-        // return res.status(401).send({error: err})
+    if (!token) {
+        // req.locals.user = null
+        res.redirect('/')
+    } else {
+        try {
+            jwt.verify(token, JWT_SECRET, async (err, decodedToken) => {
+                if (err) {
+                    req.locals.user = null
+                    next()
+                } else {
+                    let user = await User.findOne({_id: decodedToken.user.id}).select('-password')
+                    res.locals.user = user
+                    req.user = user
+                    next()
+                }
+            })
+        } catch (err) {
+            // req.locals.user = null
+            res.redirect('/')
+        }
     }
 }
 

@@ -6,8 +6,7 @@ exports.getHome = (req, res) => {
 
 exports.getDashboard = async (req, res) => {
     try {
-        const user = await User.findOne({_id: req.user.id})
-        res.render('dashboard', {user: user.name})
+        res.render('dashboard', {user: req.user.name})
     } catch(error) {
         console.log(error)
     }

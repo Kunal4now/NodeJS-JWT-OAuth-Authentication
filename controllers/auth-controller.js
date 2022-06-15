@@ -2,45 +2,25 @@ const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
+const CLIENT_ID = process.env.CLIENT_ID
 const JWT_SECRET = process.env.JWT_SECRET
 
+const {OAuth2Client} = require('google-auth-library');
+const client = new OAuth2Client(CLIENT_ID);
+
+const validationResult = require('express-validator')
+
 exports.getLogIn = (req, res) => {
-    res.render('login')
+    res.render('login', {GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID, GOOGLE_LOGIN_URI: process.env.GOOGLE_LOGIN_URI})
 }
 
 exports.getSignUp = (req, res) => {
     res.render('signup')
 }
 
-exports.create = async (req, res) => {    
-    try {
-        let user = await User.findOne({email: req.body.email});
-        if (user) {
-            return res.status(400).json({error: "Sorry a user with this email is already registered"})
-        }
-        const salt = await bcrypt.genSalt(10);
-        const secPass = await bcrypt.hash(req.body.password, salt);
-        user = await User.create({
-            name: req.body.name,
-            email: req.body.email,
-            password: secPass
-        });
-        const data = {
-            user: {
-                id: user.id
-            }
-        }
-        const authToken = jwt.sign(data, JWT_SECRET);
-        res.json({authToken})
-    } catch(error) {
-        console.log(error)
-        res.status(500).json(error)
-    }
-}
-
 exports.postLogIn = async (req, res) => {
-    const {email, password} = req.body;
     try {
+        const {email, password} = req.body;
         let user = await User.findOne({email});
         if (!user) {
             return res.status(400).json({error: "Sorry a user with this email does not exist"})
@@ -55,12 +35,10 @@ exports.postLogIn = async (req, res) => {
             }
         }
         const authToken = jwt.sign(data, JWT_SECRET);
-        // res.redirect('/dashboard')
-        res.cookie('token', authToken)
+        res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
         res.json({authToken: authToken, success: true})
     } catch(error) {
         console.log(error.message)
-        // res.redirect('/auth/login')
         res.status(500).send("Internal Server Error")
     }
 }
@@ -87,9 +65,9 @@ exports.postSignUp = async (req, res) => {
                 id: user.id
             }
         }
-        req.setHeader('auth-token', authToken)
         const authToken = jwt.sign(data, JWT_SECRET)
-        res.json({authToken, success: true})
+        res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
+        res.status(200).json({success: true})
     } catch (err) {
         return res.status(400).json({messg: err, success: false})
     }
@@ -98,4 +76,38 @@ exports.postSignUp = async (req, res) => {
 exports.logout = (req, res) => {
     res.clearCookie('token')
     res.redirect('/')
+}
+
+exports.googleLogIn = async (req, res) => {
+    const token = req.body.data
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: CLIENT_ID
+        })
+        const payload = ticket.getPayload()
+        const userEmail = payload['email']
+        const userName = payload['name']
+
+        let user = await User.findOne({email: userEmail})
+        if (!user) {
+            user = await User.create({
+                name: userName,
+                email: userEmail,
+                provider: ['Google'],
+                password: "what"
+            })
+        }
+
+        const data = {
+            user: {
+                id: user.id
+            }
+        }
+        const authToken = jwt.sign(data, JWT_SECRET)
+        res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
+        res.status(200).json({success: true})
+    } catch(error) {
+        res.status(500).json({error: error, success: false})
+    }
 }
