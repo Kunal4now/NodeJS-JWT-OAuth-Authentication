@@ -15,7 +15,7 @@ router.post('/login',[
 ],  authController.postLogIn)
 
 router.post('/signup', [
-    body('name', 'Enter a valid username').isLength({min: 2, max: 100}),
+    body('username', 'Enter a valid username').isLength({min: 2, max: 100}),
     body('email', 'Enter a valid email address').isEmail().isLength({max: 1000}),
     body('password', 'Password must be atleast 5 character long').isLength({min: 5, max: 1000})
 ], authController.postSignUp)
