@@ -11,7 +11,13 @@ const client = new OAuth2Client(CLIENT_ID);
 const validationResult = require('express-validator')
 
 exports.getLogIn = (req, res) => {
-    res.render('login', {GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID, GOOGLE_LOGIN_URI: process.env.GOOGLE_LOGIN_URI})
+    res.render('login', {
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+        GOOGLE_LOGIN_URI: process.env.GOOGLE_LOGIN_URI,
+        GOOGLE_LOGIN_URL: process.env.GOOGLE_LOGIN_URL,
+        LOGIN_URL: process.env.LOGIN_URL,
+        SIGNUP_URL: process.env.SIGNUP_URL
+    })
 }
 
 exports.getSignUp = (req, res) => {
