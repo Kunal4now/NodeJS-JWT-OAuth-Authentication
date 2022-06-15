@@ -6,12 +6,19 @@ const morgan = require('morgan')
 const bodyparser = require('body-parser')
 const cookieparser = require('cookie-parser')
 const connectToMongo = require('./db')
+const cors = require('cors')
 
 const port = process.env.PORT
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
 }
+
+var corsOptions = {
+    origin: "*",
+};
+
+app.use(cors(corsOptions));
 
 app.set('view engine', 'ejs')
 app.use(express.json())
