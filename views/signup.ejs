@@ -36,7 +36,13 @@
                 },
                 body: JSON.stringify({username, email, password})
             })
-            console.log(response)
+            const json = await response.json()
+            if (json.success) {
+                localStorage.setItem('token', json.authToken)
+                location.assign('/dashboard')
+            } else {
+                location.assign('/auth/signup')
+            }
         } catch (err) {
             console.log(err)
         }
