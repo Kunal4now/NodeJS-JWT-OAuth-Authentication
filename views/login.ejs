@@ -7,7 +7,7 @@
 </head>
 <body>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <h1>Login</h1>
+    <p id="errors"></p>
     <form action="/dashboard" method="POST">
         <label for="email">Email</label>
         <input type="email" name="email" id="email"><br>
@@ -41,6 +41,7 @@
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
+    var errors = []
     const form = document.querySelector('form')
     form.addEventListener('submit', async (e) => {
         e.preventDefault()
@@ -59,28 +60,34 @@
             if (json.success) {
                 location.assign('/dashboard')
             } else {
-                location.assign('/auth/login')
+                errors = json.error
+                alert(errors.join('\n'))
             }
         } catch (err) {
-            console.log(err)
+            alert("Internal Server Error")
         }
     })
     async function handleCredentialResponse(response) {
-        let responsePayload = response.credential;
-        const data = await fetch('<%- GOOGLE_LOGIN_URL %>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                data: responsePayload
+        try {
+            let responsePayload = response.credential;
+            const data = await fetch('<%- GOOGLE_LOGIN_URL %>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: responsePayload
+                })
             })
-        })
-        const json = await data.json()
-        if (json.success) {
-            location.assign('/dashboard')
-        } else {
-            location.assign('/auth/login')
+            const json = await data.json()
+            if (json.success) {
+                location.assign('/dashboard')
+            } else {
+                errors = json.error
+                alert(errors.join('\n'))
+            }
+        } catch(err) {
+            alert("Internal Server Error")
         }
     }
 </script>

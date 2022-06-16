@@ -40,10 +40,11 @@
             if (json.success) {
                 location.assign('/dashboard')
             } else {
-                location.assign('/auth/signup')
+                errors = json.error
+                alert(errors.join('\n'))
             }
         } catch (err) {
-            console.log(err)
+            alert("Internal Server Error")
         }
     })
 </script>

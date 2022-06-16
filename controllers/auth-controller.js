@@ -24,19 +24,22 @@ exports.getSignUp = (req, res) => {
 }
 
 exports.postLogIn = async (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-       return res.status(400).json({errors, success: false})
+    let errors = validationResult(req)
+    errors = errors.errors.map((err) => {
+        return err.msg
+    })
+    if (errors.length != 0) {
+       return res.status(200).json({error: errors, success: false})
     }
     try {
         const {email, password} = req.body;
         let user = await User.findOne({email});
         if (!user) {
-            return res.status(400).json({error: "Sorry a user with this email does not exist", success: false})
+            return res.status(401).json({error: ["Sorry a user with this email does not exist"], success: false})
         }
         const passwordCompare = await bcrypt.compare(password, user.password)
         if (!passwordCompare) {
-            return res.status(400).json({error: "Please try to login with correct credentials", success: false})
+            return res.status(200).json({error: ["Please try to login with correct credentials"], success: false})
         }
         const data = {
             user: {
@@ -52,16 +55,19 @@ exports.postLogIn = async (req, res) => {
 }
 
 exports.postSignUp = async (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-        return res.status(400).json({errors, success: false})
+    let errors = validationResult(req)
+    errors = errors.errors.map((err) => {
+        return err.msg
+    })
+    if (errors.length != 0) {
+       return res.status(200).json({error: errors, success: false})
     }
     const {username, email, password} = req.body
     
     try {
         let user = await User.findOne({email: email})
         if (user) {
-            return res.status(400).json({messg: "User already registered", success: false})
+            return res.status(200).json({error: ["User already registered"], success: false})
         }
         const salt = bcrypt.genSaltSync(10)
         const securePassword = await bcrypt.hash(password, salt)
@@ -81,7 +87,7 @@ exports.postSignUp = async (req, res) => {
         res.cookie('token', authToken, {maxAge: 1000 * 60 * 60 * 24, httpOnly: true})
         res.status(200).json({success: true})
     } catch (error) {
-        return res.status(500).json({messg: error, success: false})
+        return res.status(500).json({error: error, success: false})
     }
 }
 
@@ -102,7 +108,6 @@ exports.googleLogIn = async (req, res) => {
         const userName = payload['name']
 
         let user = await User.findOne({email: userEmail})
-        console.log(user)
         if (!user) {
             user = await User.create({
                 name: userName,
