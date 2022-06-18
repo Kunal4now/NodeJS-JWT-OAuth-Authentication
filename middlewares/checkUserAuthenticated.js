@@ -1,32 +1,22 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
-const User = require('../models/User')
+const JWT_SECRET = process.env.JWT_SECRET;
 
-const JWT_SECRET = process.env.JWT_SECRET
-
+// Checks where the user is already loggedin or not
+// If the user is already loggedin then it redirects it to the dashboard to prevent user accessing the longin and signup pages
 const checkUserAuthenticated = (req, res, next) => {
-    const token = req.cookies.token
-    if (!token) {
-        next()
-    } else {
-        try {
-            jwt.verify(token, JWT_SECRET, async (err, decodedToken) => {
-                if (err) {
-                    req.locals.user = null
-                    next()
-                } else {
-                    let user = await User.findOne({_id: decodedToken.user.id}).select('-password')
-                    res.locals.user = user
-                    req.user = user
-                    res.redirect('/dashboard')
-                    next()
-                }
-            })
-        } catch (err) {
-            console.log(err)
+    try {
+        const token = req.cookies.token
+        if (token === undefined) {
             next()
+        } else {
+            const data = jwt.verify(token, JWT_SECRET)
+            req.user = data.user;
+            res.redirect('/dashboard')
         }
+    } catch(error) {
+        next()
     }
 }
 
-module.exports = checkUserAuthenticated
+module.exports = checkUserAuthenticated;

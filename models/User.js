@@ -13,6 +13,7 @@ const userSchema = new Schema({
     password: {
         type: String,
     },
+    // Field to identify and handle users registered through OAuth
     provider: [
         {type: String}
     ]
