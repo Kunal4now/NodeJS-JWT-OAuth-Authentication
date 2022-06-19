@@ -18,6 +18,7 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
 }
 
+// API limiter to limit the no. of requests in a particular interval of time
 const apiLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 50000,

@@ -7,15 +7,15 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // 2. If not valid, then it is redirected to the home page
 const fetchuser = (req, res, next) => {
     const token = req.cookies.token
-    if (!token) {
-        res.redirect('/')
+    if (token === undefined) {
+        return res.redirect('/auth/login')
     }
     try {
         const data = jwt.verify(token, JWT_SECRET)
         req.user = data.user;
         next();
     } catch(error) {
-        res.redirect('/')
+        return res.redirect('/auth/login')
     }
 }
 

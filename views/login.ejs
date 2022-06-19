@@ -54,7 +54,7 @@
             })
             const json = await response.json()
             if (json.success) {
-                location.assign('/dashboard')
+                location.assign('/')
             } else {
                 errors = json.error
                 alert(errors.join('\n'))
@@ -77,7 +77,7 @@
             })
             const json = await data.json()
             if (json.success) {
-                location.assign('/dashboard')
+                location.assign('/')
             } else {
                 errors = json.error
                 alert(errors.join('\n'))

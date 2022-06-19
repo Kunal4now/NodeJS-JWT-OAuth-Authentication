@@ -12,7 +12,7 @@ const checkUserAuthenticated = (req, res, next) => {
         } else {
             const data = jwt.verify(token, JWT_SECRET)
             req.user = data.user;
-            res.redirect('/dashboard')
+            res.redirect('/')
         }
     } catch(error) {
         next()
